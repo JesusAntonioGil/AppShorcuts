@@ -16,7 +16,7 @@ class Memory {
     var date: Date
     @Attribute(.externalStorage) var imageData: Data
     
-    init(caption: String, date: Date, imageData: Data) {
+    init(caption: String, date: Date = .now, imageData: Data) {
         self.caption = caption
         self.date = date
         self.imageData = imageData
@@ -85,8 +85,30 @@ struct AddMemoryIntent: AppIntent {
     @Parameter(title: "Caption") var caption: String
     
     
-    func perform() async throws -> some IntentResult {
-        print(caption)
-        return .result()
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let container = try ModelContainer(for: Memory.self)
+        let context = ModelContext(container)
+        
+        let imageData = try await imageFile.data(contentType: .image)
+        let memory = Memory(caption: caption, imageData: imageData)
+        
+        context.insert(memory)
+        try context.save()
+        
+        return .result(dialog: "Memory added successfully!")
+    }
+}
+
+
+struct AddMemoryShortcut: AppShortcutsProvider {
+    static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: AddMemoryIntent(),
+            phrases: [
+                "Create a new \(.applicationName) memory"
+            ],
+            shortTitle: "Create New Memory",
+            systemImageName: "memories"
+        )
     }
 }
