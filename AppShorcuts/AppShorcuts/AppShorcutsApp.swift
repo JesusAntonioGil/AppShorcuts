@@ -7,11 +7,13 @@
 
 import SwiftUI
 
+
 @main
 struct AppShorcutsApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(for: Memory.self)
         }
     }
 }
